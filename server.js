@@ -64,5 +64,5 @@ app.post("/myGet",function(req,res){
 	res.send('successl');
 });
 
-app.listen(process.env,PORT||8080); // задаємо порт
+app.listen(process.env.PORT||8080); // задаємо порт
 console.log("Start server!");
