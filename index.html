@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<head>
+	<title>Lesson 44</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<script>
+		window.onload = function(){
+			var active = document.querySelector("#menu ul li.active");
+			var ul = document.querySelector("#menu ul");// доступились до ul
+			
+			ul.onclick = function(event){
+				var target = event.target;
+					if(target.tagName !== "LI"){
+						return;
+					}
+					active = document.querySelector("#menu ul li.active"); // забрали класс
+					active.classList.remove("active");
+					target.classList.add("active");
+					loadData(target);
+			}
+			loadData(active);
+			
+			postSend.onclick = function(){
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST','/postSend',true);
+				var body = "myInput=" + encodeURIComponent(p1.value);
+				xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+					xhr.onreadystatechange = function(){
+						if(xhr.readyState == 4)
+							alert(xhr.responseText);
+					}	
+				xhr.send(body);
+			}
+			
+		}
+
+		function loadData(li){
+			var xhr = new XMLHttpRequest();
+			var path;	
+				if(li.innerHTML == "Revision"){
+					path = "/list";
+				}
+				else{
+					path = "/form";
+				}
+				xhr.open('GET',path,true);
+				xhr.send();
+				
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4){
+						if(li.innerHTML == "Revision"){
+							parseJSON(xhr.responseText,content);
+							console.log(content);
+							return;
+						}
+							content.innerHTML = xhr.responseText;
+					}
+				}
+		}
+		
+		function parseJSON(file,content){
+			file = JSON.parse(file);
+			content.innerHTML = "";
+			var mas = [];
+				for(var key in file[0])
+					mas.push(key);
+					mas.push("");
+					var table = document.createElement("table");
+					content.appendChild(table);
+					var tr = document.createElement("tr");
+					table.appendChild(tr);
+					for(var i = 0; i < mas.length; i++){
+						var td = document.createElement("td");
+						td.innerHTML = mas[i];
+						td.classList.add("header");
+						tr.appendChild(td);
+					}
+						for(var i = 0; i < file.length; i++){
+							tr = document.createElement("tr");
+							table.appendChild(tr);
+								for(var j = 0; j < mas.length - 1; j++){
+									td = document.createElement("td");
+									td.innerHTML = file[i][mas[j]] // доступ до властивості обєкту
+									tr.appendChild(td);
+								}
+								td = document.createElement("td");
+								var btn = document.createElement("button");
+								btn.innerHTML = "X Delete";
+								btn.classList.add("btn");
+								td.appendChild(btn);
+								
+								btn.onclick = delclick;
+								
+								tr.appendChild(td);
+						}
+			
+			/*content.innerHTML = "";
+			var ul = document.createElement("ul");
+			content.appendChild(ul);
+			file = JSON.parse(file); // file буде як массив обєкта без лапок
+			for(var i = 0; i < file.length; i++){
+				var li = document.createElement("li");
+				ul.appendChild(li);
+				li.innerHTML = file[i].Lastname + " " + file[i].Firstname + " : " + file[i].Salary + "$";
+			}*/
+		}
+		
+		function forForm(){
+			/*var obj = {
+				"Lastname":formLastname.value,
+				"Firstname":formFirstname.value,
+				"Salary":formSalary.value
+			}*/
+			var inputs = document.querySelectorAll("form input[type='text']");// доступ до інпутів в формі;
+				for(var i = 0; i < inputs.length; i++)
+					if(inputs[i].value == "" || inputs[i].value == " "){
+						alert("Enter all text areas...");
+						return;
+					}
+						var xhr = new XMLHttpRequest();
+						
+						var params = "Firstname=" + encodeURIComponent(Firstname.value) + "&Lastname=" + 
+						encodeURIComponent(Lastname.value) + "&Salary=" + encodeURIComponent(Salary.value);
+					
+						xhr.open('GET','/formGet?' + params,true);
+						xhr.send();
+						
+						xhr.onreadystatechange = function(){
+							if(xhr.readyState == 4){
+								for(var i = 0; i < inputs.length; i++){
+									inputs[i].value = "";
+								}	
+									alert(xhr.responseText);
+							}
+						}
+		}
+		
+		function delclick(){
+			var parent = this.parentNode.parentNode;
+			var id = parent.rowIndex - 1;
+			console.log(id);
+			var body = "id=" + encodeURIComponent(id);
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST',"/deleteElem",true);
+			xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded'); // без цього заголовку запит працювати не буде...
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4) {
+						parseJSON(xhr.responseText, content);
+						return;
+					}
+				}
+				xhr.send(body);
+			/*
+			var parent = this.parentNode.parentNode;
+			var id = parent.rowIndex - 1;
+			console.log(id);
+			var params = "id=" + encodeURIComponent(id);
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET',"/deleteElem?" + params,true);
+			xhr.send();
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4) {
+						parseJSON(xhr.responseText, content);
+					}
+					//content.innerHTML = xhr.responseText;
+				}*/
+		}
+		
+		
+		
+		
+	</script>
+	
+</head>
+<body>
+	
+	<div id="menu">
+		<ul>
+			<li class="active">Revision</li>
+			<li>Input</li>
+		</ul>
+	</div>
+	<div id="content"></div>
+	
+	<form id="newForm" method="POST" action="/myGet">
+		<input type="text" id="p1" name="myInput">
+		<input type="text" id="p2" name="myInput2">
+		<input type="text" id="p2" name="myInput2">
+		<input type="button" id="postSend" value="postSend">
+		<input type="submit" value="GET">
+	</form>
+</body>
